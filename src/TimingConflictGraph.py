@@ -9,13 +9,12 @@ class TimingConflictGraph:
         for vehicle in config.vehicle_list:
             for zone in vehicle.trajectory:
                 self.V.add((vehicle.id, zone))
-        print(self.V)
-        self.G = {vertex: set() for vertex in self.V}
+        self.E = {vertex: set() for vertex in self.V}
 
         # Add Type-1 edges
         for vehicle in config.vehicle_list:
             for j, zone in enumerate(vehicle.trajectory[:-1]):
-                self.G[(vehicle.id, zone)].add((vehicle.id, vehicle.trajectory[j+1], 1))
+                self.E[(vehicle.id, zone)].add((vehicle.id, vehicle.trajectory[j+1], 1))
         
         # Add Type-2 edges
         for vehicle_list in config.lanes:
@@ -33,22 +32,25 @@ class TimingConflictGraph:
 
     def try_add_edge(self, src, dst, edge_type):
         if src in self.V and dst in self.V:
-            self.G[src].add(dst + (edge_type, ))
+            self.E[src].add(dst + (edge_type, ))
 
-    def view(self):
-        g = nx.DiGraph()
-        for src, adj in self.G.items():
+    def view(self, savepath=None):
+        G = nx.DiGraph()
+        for src, adj in self.E.items():
             for *dst, edge_type in adj:
                 dst = tuple(dst)
-                g.add_edge(str(src).strip('()'), str(dst).strip('()'), weight=edge_type)
-        pos = nx.kamada_kawai_layout(g)
-        type1 = [(u, v) for (u, v, d) in g.edges(data=True) if d["weight"] == 1]
-        type2 = [(u, v) for (u, v, d) in g.edges(data=True) if d["weight"] == 2]
-        type3 = [(u, v) for (u, v, d) in g.edges(data=True) if d["weight"] == 3]
-        print(type3)
-        nx.draw_networkx_edges(g, pos, node_size=800, edgelist=type1, width=1.5, arrowstyle='->', arrowsize=20)
-        nx.draw_networkx_edges(g, pos, node_size=800, edgelist=type2, edge_color='blue', width=1.5, arrowstyle='->', arrowsize=20)
-        nx.draw_networkx_edges(g, pos, node_size=800, edgelist=type3, edge_color='red', width=1.5, arrowstyle='->', arrowsize=20)
-        nx.draw_networkx_nodes(g, pos, node_size=800, edgecolors='black', node_color='white')
-        nx.draw_networkx_labels(g, pos, font_size=12, font_family="sans-serif")
-        plt.show()
+                G.add_edge(str(src).strip('()'), str(dst).strip('()'), weight=edge_type)
+        pos = nx.kamada_kawai_layout(G)
+        type1 = [(u, v) for (u, v, d) in G.edges(data=True) if d["weight"] == 1]
+        type2 = [(u, v) for (u, v, d) in G.edges(data=True) if d["weight"] == 2]
+        type3 = [(u, v) for (u, v, d) in G.edges(data=True) if d["weight"] == 3]
+        nx.draw_networkx_edges(G, pos, node_size=800, edgelist=type1, width=1.5, arrowstyle='->', arrowsize=20)
+        nx.draw_networkx_edges(G, pos, node_size=800, edgelist=type2, edge_color='blue', width=1.5, arrowstyle='->', arrowsize=20)
+        nx.draw_networkx_edges(G, pos, node_size=800, edgelist=type3, edge_color='red', width=1.5, arrowstyle='->', arrowsize=20)
+        nx.draw_networkx_nodes(G, pos, node_size=800, edgecolors='black', node_color='white')
+        nx.draw_networkx_labels(G, pos, font_size=12, font_family="sans-serif")
+        if savepath is not None:
+            plt.savefig(savepath)
+        else:
+            plt.show()
+        plt.clf()

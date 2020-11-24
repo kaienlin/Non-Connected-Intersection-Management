@@ -33,3 +33,24 @@ class Config:
 
     def sanity_check(self):
         return True
+
+    def get_vehicle_by_id(self, vehicle_id):
+        for vehicle in self.vehicle_list:
+            if vehicle.id == vehicle_id:
+                return vehicle
+        return None
+
+    def remove(self, remove_list):
+        for lane, vehicle_list in enumerate(self.lanes):
+            idx = -1
+            for i, vehicle in enumerate(vehicle_list):
+                for rem in remove_list:
+                    if vehicle.id == rem:
+                        idx = i
+                        break
+                if idx != -1:
+                    break
+            
+            if idx != -1:
+                self.lanes[lane] = vehicle_list[:idx]
+        self.vehicle_list = tuple([i for sublist in self.lanes for i in sublist])
