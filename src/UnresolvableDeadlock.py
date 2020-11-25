@@ -63,10 +63,12 @@ def dfs(v, p, W, color, count, removed_vehicle):
                     all_unique = False
                     break
             if all_unique:
+                print(v, u)
                 deadlock = True
                 removed_vehicle.append(u[0])
                 removed_vehicle_from_W(u[0], W)
                 break
+    color[v] = 'BLACK'
 
 def special_cycle_removal(W):
     global deadlock

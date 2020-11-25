@@ -23,13 +23,23 @@ class Scheduler:
             conflict_graph.E[src].difference_update(to_remove)
         return conflict_graph
 
+    def add_not_sure_edge(self, config, G):
+        for src, adj in G.E.items():
+            src_connected = config.get_vehicle_by_id(src[0]).connected
+            for *dst, edge_type in adj:
+                dst = tuple(dst)
+                if edge_type == 3 and (not src_connected or not config.get_vehicle_by_id(dst[0]).connected):
+                    G.try_add_edge(dst, src, 3)
+
     def run(self, config):
         Gp = self.FCFS(config)
+        self.add_not_sure_edge(config, Gp)
         Gp.view('original.png')
         while True:
             removed_vehicle = remove_unresolvable_deadlock(Gp, config)
             config.remove(removed_vehicle)
             Gp = self.FCFS(config)
             if not removed_vehicle: break
-            
+
+        self.add_not_sure_edge(config, Gp)    
         Gp.view('resolved.png')

@@ -1,0 +1,7 @@
+CONNECTED     1  1 2
+
+CONNECTED     2  2 3
+
+NON_CONNECTED 0  3 4
+
+CONNECTED     0  4 1
