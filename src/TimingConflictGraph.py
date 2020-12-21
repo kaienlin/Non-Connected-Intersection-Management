@@ -34,6 +34,16 @@ class TimingConflictGraph:
         if src in self.V and dst in self.V:
             self.E[src].add(dst + (edge_type, ))
 
+    def remove_vehicles(self, removed_list):
+        for v in list(self.V):
+            if v[0] in removed_list:
+                self.V.remove(v)
+                self.E.pop(v)
+                for u in self.V:
+                    self.E[u].discard(v + (1,))
+                    self.E[u].discard(v + (2,))
+                    self.E[u].discard(v + (3,))
+
     def view(self, savepath=None):
         G = nx.DiGraph()
         for src, adj in self.E.items():

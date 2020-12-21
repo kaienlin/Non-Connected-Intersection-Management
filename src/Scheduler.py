@@ -1,5 +1,6 @@
 from TimingConflictGraph import TimingConflictGraph
-from UnresolvableDeadlock import remove_unresolvable_deadlock
+from UnresolvableDeadlockDetection import UnresolvableDeadlockDetection
+from Config import Config
 import copy
 
 class Scheduler:
@@ -32,14 +33,15 @@ class Scheduler:
                     G.try_add_edge(dst, src, 3)
 
     def run(self, config):
-        Gp = self.FCFS(config)
-        self.add_not_sure_edge(config, Gp)
-        Gp.view('original.png')
+        schedule_list = []
+        rest_config = copy.deepcopy(config)
         while True:
-            removed_vehicle = remove_unresolvable_deadlock(Gp, config)
-            config.remove(removed_vehicle)
-            Gp = self.FCFS(config)
-            if not removed_vehicle: break
+            Gp = self.FCFS(rest_config)
+            deadlock_detection = UnresolvableDeadlockDetection(Gp, rest_config)
+            removed_config = deadlock_detection.run()
+            schedule_list.append(Gp)
+            if not removed_config.vehicle_list:
+                break
+            rest_config = removed_config
 
-        self.add_not_sure_edge(config, Gp)    
-        Gp.view('resolved.png')
+        return schedule_list

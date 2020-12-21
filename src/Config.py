@@ -1,7 +1,12 @@
 from Vehicle import Vehicle
 
 class Config:
-    def __init__(self, fname):
+    def __init__(self, fname=None):
+        if fname is None:
+            self.lanes = [[], ]
+            self.vehicle_list = tuple()
+            return
+            
         self.lanes = [[], ]
         with open(fname, 'r') as f:
             for line in f.readlines():
@@ -40,17 +45,29 @@ class Config:
                 return vehicle
         return None
 
-    def remove(self, remove_list):
+    def split(self, vehicle_id):
         for lane, vehicle_list in enumerate(self.lanes):
-            idx = -1
+            idx = None
             for i, vehicle in enumerate(vehicle_list):
-                for rem in remove_list:
-                    if vehicle.id == rem:
-                        idx = i
-                        break
-                if idx != -1:
+                if vehicle_id == vehicle.id:
+                    idx = i
                     break
-            
-            if idx != -1:
+            if idx is not None:
+                new_config = Config()
+                new_config.lanes = [[] for _ in range(len(self.lanes))]
+                new_config.lanes[lane] = vehicle_list[idx:]
+                new_config.vehicle_list = tuple([i for sublist in new_config.lanes for i in sublist])
                 self.lanes[lane] = vehicle_list[:idx]
+                self.vehicle_list = tuple([i for sublist in self.lanes for i in sublist])
+                return new_config
+
+        raise f"Error in Config.split({vehicle_id}): vehicle_id not in config"
+
+    def merge(self, config):
+        assert len(self.lanes) == len(config.lanes)
+
+        for lane in range(len(self.lanes)):
+            self.lanes[lane] = self.lanes[lane] + config.lanes[lane]
+            self.lanes[lane].sort(key=lambda vehicle: vehicle.arrival_time)
+
         self.vehicle_list = tuple([i for sublist in self.lanes for i in sublist])
