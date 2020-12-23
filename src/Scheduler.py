@@ -1,6 +1,7 @@
 from TimingConflictGraph import TimingConflictGraph
 from UnresolvableDeadlockDetection import UnresolvableDeadlockDetection
 from Config import Config
+from Simulator import Simulator
 import copy
 
 class Scheduler:
@@ -39,7 +40,11 @@ class Scheduler:
             Gp = self.FCFS(rest_config)
             deadlock_detection = UnresolvableDeadlockDetection(Gp, rest_config)
             removed_config = deadlock_detection.run()
+            Gp = self.FCFS(rest_config)
+            self.add_not_sure_edge(rest_config, Gp)
             schedule_list.append(Gp)
+            sim = Simulator(Gp, rest_config)
+            sim.simulate()
             if not removed_config.vehicle_list:
                 break
             rest_config = removed_config
